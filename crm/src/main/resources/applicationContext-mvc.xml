@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+<!--    dispatcherServlet 拦截所有url请求-->
+    <mvc:default-servlet-handler/>
+<!--    spring mvc 扫描包下的所有controller-->
+    <context:component-scan base-package="com.may.crm.web.controller"/>
+    <context:component-scan base-package="com.may.crm.settings.web.controller"/>
+    <context:component-scan base-package="com.may.crm.workbench.web.controller"/>
+<!--    配置注解驱动-->
+    <mvc:annotation-driven/>
+<!--    配置视图解析器-->
+    <bean id="ViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/pages/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+<!--    配置拦截器-->
+    <mvc:interceptors>
+        <mvc:interceptor>
+<!--            1.要拦截所包含用户数据的页面
+                2.因为资源在web-INF 目录下，jsp不能直接访问，
+                只能通过内部controller访问，实际上拦截的是，以setting和workbench开头的controller
+                3.* 只能代表目录下的一级目录，如果有多级目录要用 ** 才能完全拦截 -->
+            <mvc:mapping path="/settings/**"/>
+            <mvc:mapping path="/workbench/**"/>
+<!--            要放行要跳转到登录，以及登录的页面，不然完全拦截，用户不能登陆，不登录又会拦截请求-->
+            <mvc:exclude-mapping path="/settings/qx/user/toLogin.do"/>
+            <mvc:exclude-mapping path="/settings/qx/user/login.do"/>
+<!--           配置实现拦截功能的类  -->
+            <bean class="com.may.crm.settings.web.interceptor.LoginInterceptor"></bean>
+        </mvc:interceptor>
+    </mvc:interceptors>
+    <!-- 配置文件上传解析器 id:必须是multipartResolver-->
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="#{1024*1024*5}"/>
+        <property name="defaultEncoding" value="utf-8"/>
+    </bean>
+</beans>
